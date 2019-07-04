@@ -30,7 +30,7 @@ class LifeDisplay:
     という処理を繰り返す。
     '''
     def __init__(self, width=800, height=450,
-                 bg_color=(200, 200, 200),
+                 bg_color=(255, 255, 255),
                  alive_color=(0, 0, 0)):
         u'''
         ライフゲーム表示ウィンドウを表示する。
@@ -255,7 +255,7 @@ class LifeDisplayAndGenerateImages(LifeDisplay):
                             **kwargs)
 '''^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-![acorn_mini.gif](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/412308/45decc63-fbd2-b970-b235-47f781e78a27.gif)
+![acorn_mini.gif](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/412308/a9a6407e-9e1e-de3d-a2b3-b4d20b9c1d00.gif)
 
 ## まとめ
 

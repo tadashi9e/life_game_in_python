@@ -72,20 +72,38 @@ def main():
     dots = life_file.read_life_105_file(0, 0, path)
     life_file.write_life_105(dots)
     # pygames フロントエンドで表示しながら実行する場合
-    # display = life_display.LifeDisplayAndGenerate()
-    # pygames フロントエンドで表示しながらアニメーション GIF を作成する場合
-    display = life_display.LifeDisplayAndGenerateImages(width=200, height=200)
-    for i in range(1, 70):
+    display = life_display.LifeDisplay()
+    while True:
         display.draw(dots)
         dots = life(dots)
         display.clock_tick(fps)
+
+def main_gif_animation():
+    u'''Life1.05 形式のファイルから初期状態を読み込んで実行する。
+    実行後にアニメーション GIF を残す。
+    '''
+    if len(sys.argv) < 2:
+        print('test: <life file>')
+        sys.exit(0)
+    fps = 200  # フレームレート
+    path = sys.argv[1]
+    # ファイルから読み込む
+    dots = life_file.read_life_105_file(0, 0, path)
+    life_file.write_life_105(dots)
+    # pygames フロントエンドで表示しながらアニメーション GIF を作成する場合
+    display = life_display.LifeDisplayAndGenerateImages(width=200, height=200)
+    for i in range(1, 240):
+        display.draw(dots)
+        dots = life(dots)
+        display.clock_tick(fps)
+    # アニメーション GIF を作成する場合
     display.generate_animation_gif('/tmp/life.gif',
                                    optimize=True, duration=1, loop=0)
 if __name__ == '__main__':
     main()
 '''^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-![acorn_mini.gif](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/412308/45decc63-fbd2-b970-b235-47f781e78a27.gif)
+![acorn_mini.gif](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/412308/a9a6407e-9e1e-de3d-a2b3-b4d20b9c1d00.gif)
 
 しょぼい GIF アニメーションですみません。もっと長時間動いている画像をお見せ出来ないのが残念です。
 
