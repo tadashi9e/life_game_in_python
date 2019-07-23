@@ -31,22 +31,20 @@ class LifeDisplay:
     '''
     def __init__(self, width=800, height=450,
                  bg_color=(255, 255, 255),
+                 grid_color=(0, 255, 255),
                  alive_color=(0, 0, 0)):
         u'''
         ライフゲーム表示ウィンドウを表示する。
-        --------
-        width : int
-            表示する画面の幅
-        height : int
-            表示する画面の高さ
-        bg_color: tuple(int)
-            「死」セルの色
-        alive_color:  tuple(int)
-            「生」セルの色
+        Args:
+            width : int : 表示する画面の幅
+            height : int : 表示する画面の高さ
+            bg_color: tuple(int) : 「死」セルの色
+            alive_color:  tuple(int) : 「生」セルの色
         '''
         self.MARGIN = 10
         self.width, self.height = width, height
-        self.bg_color, self.alive_color = bg_color, alive_color
+        self.bg_color, self.grid_color = bg_color, grid_color
+        self.alive_color = alive_color
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.margin_frame = MarginFrame(10)
@@ -54,18 +52,29 @@ class LifeDisplay:
         self.clock = pygame.time.Clock()
     def clock_tick(self, fps):
         u'''与えられたフレームレートに従って待つ。
-        --------
-        fps : int
-            フレームレート
+        Args:
+            fps : int : フレームレート
         '''
         self.clock.tick(fps)
+    def _draw_grid(self, cell_size, x_center, y_center, w_center, h_center):
+        for x in range(int((x_center - w_center / cell_size) / 10) * 10,
+                       int(x_center + w_center / cell_size) + 1,
+                       10):
+            px = int(w_center + (x + 0.5 - x_center) * cell_size)
+            pygame.draw.line(self.screen, self.grid_color,
+                                 (px, 0), (px, self.height))
+        for y in range(int((y_center - h_center / cell_size) / 10) * 10,
+                       int(y_center + h_center / cell_size) + 1,
+                       10):
+            py = int(h_center + (y + 0.5 - y_center) * cell_size)
+            pygame.draw.line(self.screen, self.grid_color,
+                             (0, py), (self.width, py))
     def draw(self, dots):
         u'''「生」状態セルの set を画面上にボックスとして表示する。
         全体のバックグラウンド色は self.bg_color で、
         「生」状態セルの色は self.active_color。
-        --------
-        dots : set
-            「生」セルの座標の set
+        Args:
+            dots : set: 「生」セルの座標の set
         '''
         x_min, y_min, x_max, y_max = self.margin_frame.set(dots)
         x_cell_size = self.width / (x_max - x_min)
@@ -76,6 +85,7 @@ class LifeDisplay:
         w_center = self.width / 2
         h_center = self.height / 2
         self.screen.fill(self.bg_color)
+        self._draw_grid(cell_size, x_center, y_center, w_center, h_center)
         for (x, y) in dots:
             px = int(w_center + (x - x_center) * cell_size)
             py = int(h_center + (y - y_center) * cell_size)
@@ -98,9 +108,8 @@ class MarginFrame:
     def __init__(self, margin=10):
         u'''
         与えられた変動許容幅で矩形領域を作成する
-        --------
-        margin : int
-            変動許容幅
+        Args:
+            margin : int 変動許容幅
         '''
         self.x_min = Margin(margin)
         self.y_min = Margin(margin)
@@ -118,9 +127,8 @@ class MarginFrame:
         u'''
         与えられた座標の集合について、その座標すべてを含む矩形領域を返す。
         なるべく前回返した矩形領域から大きく変化しないようにする。
-        --------
-        dots : Set[Tuple[int, int]]
-            矩形領域に含むべき座標の集合
+        Args:
+          dots : Set[Tuple[int, int]] : 矩形領域に含むべき座標の集合
         '''
         return (
             self._set_x_min(min([x for (x, _) in dots])),
@@ -132,32 +140,38 @@ class Margin:
     '''
     def __init__(self, margin):
         u'''変動する値に対して、ある程度のマージンを許すことで変動を抑える。
-        --------
-        margin : int
-            許容幅
+        Args:
+            margin : int : 許容幅
         '''
         self.margin = margin
         self.value = None
     def set_min(self, new_value):
         u'''与えられた値より少ない値を返す。なるべく前回の値に近い値を返す。
-        --------
-        new_value : int
-            目標値
+        Args:
+            new_value : int : 目標値
+        Returns:
+            float : 変動を抑えた値。目標値と同じか少ない値を常に返す。
         '''
         self.value = (
-            new_value if self.value is None or new_value < self.value else
-            self.value + 1 if new_value > self.value + self.margin else
+            new_value - 1 if self.value is None else
+            new_value if new_value < self.value else
+            (self.value - 0.5) if new_value < self.value + 1 else
+            (self.value + 0.25) if new_value > self.value + self.margin else
             self.value)
         return self.value
     def set_max(self, new_value):
         u'''与えられた値より大きい値を返す。なるべく前回の値に近い値を返す。
-        --------
-        new_value : int
-            目標値
+
+        Args:
+            new_value : int : 目標値
+        Returns:
+            float: 変動を抑えた値。目標値と同じか大きい値を常に返す。
         '''
         self.value = (
-            new_value if self.value is None or new_value > self.value else
-            self.value - 1 if new_value < self.value - self.margin else
+            new_value + 1 if self.value is None else
+            new_value if new_value > self.value else
+            (self.value + 0.5) if new_value > self.value + 1 else
+            (self.value - 0.25) if new_value < self.value - self.margin else
             self.value)
         return self.value
     def get_value(self):
@@ -222,6 +236,18 @@ class LifeDisplayAndGenerateImages(LifeDisplay):
         '''
         super(LifeDisplayAndGenerateImages, self).__init__(*args, **kwargs)
         self.images = []
+    def draw_grid(self, draw, cell_size, x_center, y_center,
+                  w_center, h_center):
+        for x in range(int((x_center - w_center / cell_size) / 10) * 10,
+                       int(x_center + w_center / cell_size) + 1,
+                       10):
+            px = int(w_center + (x + 0.5 - x_center) * cell_size)
+            draw.line((px, 0, px, self.height), fill=self.grid_color)
+        for y in range(int((y_center - h_center / cell_size) / 10) * 10,
+                       int(y_center + h_center / cell_size) + 1,
+                       10):
+            py = int(h_center + (y + 0.5 - y_center) * cell_size)
+            draw.line((0, py, self.width, py), fill=self.grid_color)
     def draw(self, dots):
         u'''LifeDisplay と同じ引数を与える。
         '''
@@ -236,6 +262,7 @@ class LifeDisplayAndGenerateImages(LifeDisplay):
         y_center = (y_min + y_max) / 2
         w_center = self.width / 2
         h_center = self.height / 2
+        self.draw_grid(draw, cell_size, x_center, y_center, w_center, h_center)
         for (x, y) in dots:
             px = int(w_center + (x - x_center) * cell_size)
             py = int(h_center + (y - y_center) * cell_size)
@@ -246,9 +273,8 @@ class LifeDisplayAndGenerateImages(LifeDisplay):
         self.images.append(image)
     def generate_animation_gif(self, gen_file_path, **kwargs):
         u'''与えられたファイルパス名でアニメーション GIF を作る。
-        --------
-        gen_file_path : str
-            アニメーション GIF ファイル作成先パス名
+        Args:
+            gen_file_path : str : アニメーション GIF ファイル作成先パス名
         '''
         self.images[0].save(gen_file_path,
                             save_all=True, append_images=self.images[1:],

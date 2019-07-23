@@ -66,7 +66,7 @@ def main():
     if len(sys.argv) < 2:
         print('test: <life file>')
         sys.exit(0)
-    fps = 200  # フレームレート
+    fps = 20  # フレームレート
     path = sys.argv[1]
     # ファイルから読み込む
     dots = life_file.read_life_105_file(0, 0, path)
